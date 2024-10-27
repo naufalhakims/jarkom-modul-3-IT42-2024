@@ -218,4 +218,229 @@ apt install htop -y
 apt install apache2-utils -y
 apt-get install jq -y
 ```
+# Soal 0
+Fritz
+```bash
+echo 'zone "marley.it42.com" { 
+        type master; 
+        file "/etc/bind/marley/marley.it42.com";
+};
 
+zone "eldia.it42.com" {
+        type master;
+        file "/etc/bind/eldia/eldia.it42.com";
+}; ' >> /etc/bind/named.conf.local
+
+mkdir /etc/bind/marley
+mkdir /etc/bind/eldia
+
+echo ';
+; BIND data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     marley.it42.com. root.marley.it42.com. (
+                              2         ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@       IN      NS      marley.it42.com.
+@       IN      A       10.84.1.2     ; IP Annie' > /etc/bind/marley/marley.it42.com
+
+echo ';
+; BIND data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     eldia.it42.com. root.eldia.it42.com. (
+                              2         ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@       IN      NS      eldia.it42.com.
+@       IN      A       10.84.2.2     ; IP Armin' > /etc/bind/eldia/eldia.it42.com
+
+service bind9 restart
+```
+# Soal 1-5
+```bash
+echo 'INTERFACESv4="eth0"' > /etc/default/isc-dhcp-server
+
+echo 'subnet 10.84.1.0 netmask 255.255.255.0 {
+#Range IP Marley
+        range 10.84.1.05 10.84.1.25;
+        range 10.84.1.50 10.84.1.100;
+        option routers 10.84.1.1;
+# DNS Server Fritz
+        option broadcast-address 10.84.1.255;
+        option domain-name-servers 10.84.4.2;
+# Durasi DHCP Marley
+        default-lease-time 1800;
+        max-lease-time 5220;
+}
+
+subnet 10.84.2.0 netmask 255.255.255.0 {
+# Range IP Eldia
+        range 10.84.2.09 10.84.2.27;
+        range 10.84.2.81 10.84.2.243;
+        option routers 10.84.2.1;
+# DNS Server Fritz
+        option broadcast-address 10.84.2.255;
+        option domain-name-servers 10.84.4.2;
+# Durasi DHCP Eldia
+        default-lease-time 360;
+        max-lease-time 5220;
+}
+
+subnet 10.84.3.0 netmask 255.255.255.0 {
+        option routers 10.84.3.1;
+}
+
+subnet 10.84.4.0 netmask 255.255.255.0 {
+        option routers 10.84.4.1;
+} ' > /etc/dhcp/dhcpd.conf
+
+service isc-dhcp-server restart
+
+```
+# Soal 6
+Install php 7.2.24 terlebih dahulu menggunakan script ini
+
+```bash
+# PHP
+apt update
+apt install -y php php-fpm
+```
+Setelah itu pada php worker jalankan script ini
+```bash
+# Soal 6: Jalankan pada setiap PHP worker 
+mkdir -p /var/www/eldia.it42.com
+
+wget --no-check-certificate 'https://drive.google.com/uc?export=download&id=1TvebIeMQjRjFURKVtA32lO9aL7U2msd6' -O /root/bangsaEldia.zip
+unzip /root/bangsaEldia.zip -d /var/www/eldia.it42.com
+rm -rf /root/bangsaEldia.zip
+
+echo '
+server {
+
+        listen 80;
+
+        root /var/www/eldia.it42.com;
+
+        index index.php index.html index.htm;
+        server_name _;
+
+        location / {
+                        try_files $uri $uri/ /index.php?$query_string;
+        }
+
+        # pass PHP scripts to FastCGI server
+        location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/var/run/php/php7.2-fpm.sock;
+        }
+
+location ~ /\.ht {
+                        deny all;
+        }
+
+        error_log /var/log/nginx/jarkom_error.log;
+        access_log /var/log/nginx/jarkom_access.log;
+ }' > /etc/nginx/sites-available/eldia.it42.com
+
+ln -s /etc/nginx/sites-available/eldia.it42.com /etc/nginx/sites-enabled
+rm -rf /etc/nginx/sites-enabled/default
+
+service php7.2-fpm start
+service php7.2-fpm restart
+service nginx restart
+nginx -t
+```
+
+# Soal 7
+```bash
+# Pada Fritz
+echo ';
+; BIND data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     eldia.it42.com. root.eldia.it42.com. (
+                              2         ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@       IN      NS      eldia.it42.com.
+@       IN      A       10.84.3.3     ; IP Colossal' > /etc/bind/eldia/eldia.it42.com
+
+service bind9 restart
+
+# Pada Colossal
+echo '
+ upstream myweb  {
+        server 10.84.2.2; #IP Armin
+        server 10.84.2.3; #IP Eren
+        server 10.84.2.4; #IP Mikasa
+ }
+
+ server {
+        listen 80;
+        server_name eldia.it42.com;
+
+        location / {
+        proxy_pass http://myweb;
+        }
+ }' > /etc/nginx/sites-available/lb-php
+
+ln -s /etc/nginx/sites-available/lb-php /etc/nginx/sites-enabled
+rm -rf /etc/nginx/sites-enabled/default
+
+service nginx restart
+nginx -t
+```
+
+# Soal 8
+```bash
+# Collosal
+echo '
+ upstream myweb  {
+#    hash $request_uri consistent;
+#    least_conn;
+#    ip_hash;
+        server 10.846.2.2; #IP Armin
+        server 10.846.2.3; #IP Eren
+        server 10.846.2.4; #IP Mikasa
+ }
+
+ server {
+        listen 80;
+        server_name eldia.it42.com;
+
+        location / {
+        proxy_pass http://myweb;
+        }
+ }' > /etc/nginx/sites-available/lb-php
+
+ln -s /etc/nginx/sites-available/lb-php /etc/nginx/sites-enabled
+rm -rf /etc/nginx/sites-enabled/default
+
+service nginx restart
+nginx -t
+```
+
+lakukan setiap kali algoritma load balancer diubah pada client
+```bash
+ab -n 1000 -c 75 http://eldia.it42.com/
+```
+# Soal 9
+Ketikan ini pada stiap worker untuk mengetest
+```bash
+service nginx stop
+```
+```bash
+#Pada Erwin lakukan setiap kali jumlah worker diubah
+ab -n 1000 -c 10 http://eldia.it42.com/
+```
