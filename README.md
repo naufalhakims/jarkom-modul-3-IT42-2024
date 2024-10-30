@@ -131,7 +131,7 @@ auto eth0
 iface eth0 inet dhcp
 ```
 
-### .bashrc
+### Prequisite
 1. DHCP Relay (Paradis)
 ```bash
 iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE -s 10.84.0.0/16
@@ -305,6 +305,9 @@ subnet 10.84.4.0 netmask 255.255.255.0 {
 service isc-dhcp-server restart
 
 ```
+Hasil test ping di client
+![image](https://github.com/user-attachments/assets/4e5051a7-d0af-4432-b69d-a9751fd23bd3)
+
 # Soal 6
 Install php 7.2.24 terlebih dahulu menggunakan script ini
 
@@ -358,6 +361,10 @@ service php7.2-fpm restart
 service nginx restart
 nginx -t
 ```
+Test nginx di client
+![image](https://github.com/user-attachments/assets/d2af0215-cd1b-438e-aa63-9fe0fa080725)
+![image](https://github.com/user-attachments/assets/fd785d0c-c0c7-49ec-bacf-a6df567c2f9b)
+![image](https://github.com/user-attachments/assets/b4519b7f-7bde-4bcb-b511-fd7e977247d1)
 
 # Soal 7
 ```bash
@@ -377,7 +384,8 @@ $TTL    604800
 @       IN      A       10.84.3.3     ; IP Colossal' > /etc/bind/eldia/eldia.it42.com
 
 service bind9 restart
-
+```
+```bash
 # Pada Colossal
 echo '
  upstream myweb  {
@@ -400,6 +408,10 @@ rm -rf /etc/nginx/sites-enabled/default
 
 service nginx restart
 nginx -t
+```
+Pada client lakukan sebagai langkah akhir untuk pengetesan
+```bash
+ab -n 6000 -c 200 http://eldia.it42.com/
 ```
 
 # Soal 8
