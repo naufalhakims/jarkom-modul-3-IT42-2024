@@ -413,6 +413,7 @@ Pada client lakukan sebagai langkah akhir untuk pengetesan
 ```bash
 ab -n 6000 -c 200 http://eldia.it42.com/
 ```
+![image](https://github.com/user-attachments/assets/7ff6bcb5-7385-45b9-bdcf-1d7153f16e14)
 
 # Soal 8
 ```bash
@@ -447,6 +448,17 @@ lakukan setiap kali algoritma load balancer diubah pada client
 ```bash
 ab -n 1000 -c 75 http://eldia.it42.com/
 ```
+Round Robin
+![image](https://github.com/user-attachments/assets/0f579d9e-c2e1-42b5-8fa6-1f98c135358e)
+Hash
+![image](https://github.com/user-attachments/assets/4eafc940-c5fa-4b8a-8c1a-20748ee7b49e)
+Least Connection
+![image](https://github.com/user-attachments/assets/4cc560eb-6119-4aaf-b798-25853ada8207)
+IP Hash
+![image](https://github.com/user-attachments/assets/f7525851-306b-4ee6-9645-820b744e5c15)
+Diagram
+![image](https://github.com/user-attachments/assets/8ecdda57-3a44-45e4-9ca4-8584508af8e7)
+
 # Soal 9
 Ketikan ini pada stiap worker untuk mengetest
 ```bash
@@ -456,7 +468,12 @@ service nginx stop
 #Pada Erwin lakukan setiap kali jumlah worker diubah
 ab -n 1000 -c 10 http://eldia.it42.com/
 ```
-
+3 worker
+![image](https://github.com/user-attachments/assets/9c7539c2-95e5-4e42-9fac-7fc42c8644f2)
+2 worker
+![image](https://github.com/user-attachments/assets/aa8b9fa7-dab9-4048-8a5d-544753c67bc3)
+1 worker
+![image](https://github.com/user-attachments/assets/d7b0128e-ec8c-467e-83e0-0bbb963212ad)
 
 # Soal 10
 
