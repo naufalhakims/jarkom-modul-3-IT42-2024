@@ -444,3 +444,118 @@ service nginx stop
 #Pada Erwin lakukan setiap kali jumlah worker diubah
 ab -n 1000 -c 10 http://eldia.it42.com/
 ```
+
+
+# Soal 10
+
+Untuk mengkonfigurasi autentikasi dasar di Nginx menggunakan username dan password,bisa menggunakan `htpasswd` untuk membuat file otentikasi. Berikut langkah-langkahnya:
+
+
+1. **Buat folder untuk menyimpan file htpasswd:**
+   ```bash
+   mkdir -p /etc/nginx/supersecret
+   ```
+
+2. **Buat file `htpasswd`:**
+   Kombinasi username `arminannie` dan password `jrkmyyy` (ganti `yyy` dengan kode kelompok):
+   ```bash
+   htpasswd -bc /etc/nginx/supersecret/htpasswd arminannie jrkmyyy
+   ```
+
+3. **Konfigurasi autentikasi di Nginx (Colossal):**
+   Tambahkan blok berikut di konfigurasi Nginx untuk mengamankan akses:
+   ```bash
+   server {
+       listen 80;
+       server_name eldia.it42.com;
+
+       location / {
+           auth_basic "Restricted Access";
+           auth_basic_user_file /etc/nginx/supersecret/htpasswd;
+           proxy_pass http://myweb;
+       }
+   }
+   ```
+
+4. **Restart Nginx:**
+   Setelah melakukan perubahan pada konfigurasi, restart Nginx:
+   ```bash
+   service nginx restart
+   ```
+
+# Soal 11
+
+Untuk meneruskan request yang mengandung `/titan` ke URL eksternal, bisa menggunakan perintah `proxy_pass` di konfigurasi Nginx:
+
+1. **Tambahkan proxy pass untuk `/titan`:**
+   ```bash
+   location /titan {
+       proxy_pass https://attackontitan.fandom.com/wiki/Attack_on_Titan_Wiki;
+   }
+   ```
+
+2. **Restart Nginx:**
+   ```bash
+   service nginx restart
+   ```
+
+# Soal 12
+
+Untuk membatasi akses ke Colossal hanya untuk IP tertentu,menggunakan perintah `allow` dan `deny` di konfigurasi Nginx. Misalkan [Prefix IP] adalah `10.84`, maka IP yang diperbolehkan adalah `10.84.1.77`, `10.84.1.88`, `10.84.2.144`, dan `10.84.2.156`.
+
+1. **Tambahkan aturan IP di Nginx:**
+   ```bash
+   server {
+       listen 80;
+       server_name eldia.it42.com;
+
+       allow 10.84.1.77;
+       allow 10.84.1.88;
+       allow 10.84.2.144;
+       allow 10.84.2.156;
+       deny all;
+
+       location / {
+           proxy_pass http://myweb;
+       }
+   }
+   ```
+
+2. **Restart Nginx:**
+   ```bash
+   service nginx restart
+   ```
+
+# Soal 13
+
+Untuk memberikan akses ke data di Warhammer hanya kepada pengguna Annie, Reiner, dan Berthold,dengan mengonfigurasi aturan firewall atau mengamankan direktori menggunakan htpasswd.
+
+1. **Buat file htpasswd di Warhammer:**
+   ```bash
+   htpasswd -bc /etc/nginx/supersecret/htpasswd annie password_annie
+   htpasswd -b /etc/nginx/supersecret/htpasswd reiner password_reiner
+   htpasswd -b /etc/nginx/supersecret/htpasswd berthold password_berthold
+   ```
+
+2. **Konfigurasi Nginx di Warhammer:**
+   Pastikan direktori yang berisi data hanya bisa diakses oleh pengguna terautentikasi:
+   ```bash
+   server {
+       listen 80;
+       server_name warhammer.it42.com;
+
+       location /data {
+           auth_basic "Restricted Data Access";
+           auth_basic_user_file /etc/nginx/supersecret/htpasswd;
+           root /var/www/warhammer/data;
+       }
+   }
+   ```
+
+3. **Restart Nginx:**
+   ```bash
+   service nginx restart
+   ```
+
+Dengan konfigurasi di atas, hanya pengguna yang memiliki username dan password yang sesuai (Annie, Reiner, dan Berthold) yang bisa mengakses data penting di Warhammer.
+
